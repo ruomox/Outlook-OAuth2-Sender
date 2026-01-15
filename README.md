@@ -1,6 +1,6 @@
 # Outlook-OAuth2-Sender
 
-🇬🇧 English | 🇨🇳 [简体中文](./README.zh-CN.md)
+🌍 English | 🌍 [简体中文](./README.zh-CN.md)
 
 ---
 
