@@ -1,0 +1,27 @@
+{
+  "azure_app": {
+    "client_id": "YOUR_CLIENT_ID",
+    "client_secret": "YOUR_SECRET_KEY",
+    "tenant_id": "consumers"
+  },
+  "auth": {
+    "refresh_token": "YOUR_REFRESH_TOKEN",
+    "token_url": "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
+  },
+  "security": {
+    "secret_expire_date": "202X-XX-XX",
+    "warning_threshold_days": 30
+  },
+  "email_settings": {
+    "sender_email": "YOUR@email.com",
+    "admin_notify_email": "YOUR@ALERTemail.com",
+    "graph_send_url": "https://graph.microsoft.com/v1.0/me/sendMail"
+  },
+  "paths": {
+    "token_cache": "/home/outlookOAuth2/.graph_token_cache.json",
+    "refresh_token": "/home/outlookOAuth2/.refresh_token",
+    "warning_log": "/home/outlookOAuth2/.warning_sent_log",
+    "template_dir": "/home/outlookOAuth2/templates",
+    "warning_template_name": "secret_warning.html"
+  }
+}

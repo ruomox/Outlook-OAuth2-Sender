@@ -1,0 +1,9 @@
+# Local
+*
+!.gitignore
+!main.py
+!config_example.json
+!README
+!LICENSE
+!templates/
+!templates/secret_warning.html
