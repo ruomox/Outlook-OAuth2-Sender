@@ -90,32 +90,45 @@ def get_valid_token():
         # 这里抛出异常让调用者决定
         raise
 
-def load_template_content(template_filename, variables=None):
+def load_template_content(path_or_filename, variables=None):
     """
-    从 templates 目录加载文件内容，并支持变量替换
-    :param template_filename: 模板文件名
-    :param variables: 字典，用于替换模板中的 ${key} 占位符
+    加载文件内容，支持绝对路径、相对路径或 templates 目录下的文件名
     """
+    # 1. 先获取配置中的模板目录（作为备选）
     template_dir = CFG['paths'].get('template_dir')
-    if not template_dir:
-        print("CRITICAL: paths.template_dir 未在 config.json 中配置")
+
+    # 2. 判定文件路径逻辑
+    target_path = None
+
+    # 逻辑A: 如果用户给的是绝对路径，或者当前目录下存在该文件，直接使用
+    if os.path.exists(path_or_filename):
+        target_path = path_or_filename
+
+    # 逻辑B: 如果找不到，且配置了模板目录，尝试去模板目录里找
+    elif template_dir:
+        joined_path = os.path.join(template_dir, path_or_filename)
+        if os.path.exists(joined_path):
+            target_path = joined_path
+
+    # 3. 最终检查
+    if not target_path:
+        print(f"ERROR: 找不到文件: {path_or_filename}")
+        print(f"       已尝试路径1: {os.path.abspath(path_or_filename)}")
+        if template_dir:
+            print(f"       已尝试路径2: {os.path.join(template_dir, path_or_filename)}")
         sys.exit(1)
-    file_path = os.path.join(template_dir, template_filename)
-    if not os.path.exists(file_path):
-        print(f"ERROR: 模板文件不存在: {file_path}")
-        sys.exit(1)
+
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(target_path, 'r', encoding='utf-8') as f:
             content = f.read()
 
-        # 如果提供了变量字典，则进行替换
+        # 如果提供了变量字典，则进行替换 (用于自检告警)
         if variables:
-            # safe_substitute 在找不到变量时不会报错，而是保留原样，比较安全
             return Template(content).safe_substitute(variables)
         return content
 
     except Exception as e:
-        print(f"ERROR: 读取或处理模板文件失败: {e}")
+        print(f"ERROR: 读取或处理文件失败: {e}")
         sys.exit(1)
 
 def send_email_core(to_email, subject, body_content, is_html=False):
@@ -254,15 +267,20 @@ if __name__ == "__main__":
 
     # 4. 准备发送内容
     final_body = ""
-    is_html_content = args.html
+    is_html_content = False  # 默认一律按文本
 
     if args.file:
-        # 加载用户指定的模板 (这里不传 variables，保持原样加载)
         final_body = load_template_content(args.file)
-        is_html_content = True
+
+        # 仅当文件名像 HTML，或用户显式 --html
+        is_html_content = (
+                args.file.lower().endswith(('.html', '.htm'))
+                or args.html
+        )
         print(f"INFO: 使用模板文件: {args.file}")
     else:
         final_body = args.body
+        is_html_content = args.html
 
     # 5. 执行主发送任务
     if not send_email_core(args.to, args.subject, final_body, is_html_content):
